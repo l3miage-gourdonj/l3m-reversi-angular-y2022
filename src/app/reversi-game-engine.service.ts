@@ -168,13 +168,21 @@ ${this.whereCanPlay()
       * @returns Le nouvel état de jeu si le joueur courant joue en i,j, l'ancien état si il ne peut pas jouer en i,j
       */
      private tryPlay(i: number, j: number): GameState {
-          return { turn: this.turn, board: this.board };
+          let nextTurn:Turn=this.turn;
+          let currentBoard:Board = this.board.map(elt=>elt.map(c=> c))as Board
+          let whereCanPlay:TileCoords[] = [...this.whereCanPlay()]
+          if(whereCanPlay.find(coord=> coord[0]===i&& coord[1]===j)){
+               currentBoard[i][j] = this.turn;
+               this.PionsTakenIfPlayAt(i,j).forEach(tile=>currentBoard[tile[0]][tile[1]]=this.turn);
+               nextTurn = this.turn==='Player1' ? 'Player2' : 'Player1';
+          }
+          return { turn: nextTurn, board: currentBoard};
      }
 
      /**
       * @returns vrai si le joueur courant peut jouer quelque part, faux sinon.
       */
      private canPlay(): boolean {
-          return false;
+          return this.whereCanPlay().length > 0;
      }
 }
