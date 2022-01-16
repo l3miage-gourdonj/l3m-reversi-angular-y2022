@@ -113,29 +113,35 @@ ${this.whereCanPlay()
      }
 
      /**
+      * coordonatesInsideBoard indique si les coordonnées passées en paramètres sont celles d'une case du plateau
+      * @param i 
+      * @param j 
+      * @returns true si la case est bien dans le plateau, false sinon
+      */
+     private coordonatesInsideBoard(i: number, j: number): boolean {
+          return (i < this.board[0].length && j < this.board.length && i >= 0 && j >= 0);
+     }
+
+     /**
       * Renvoie la liste des positions qui seront prises si on pose un pion du joueur courant en position i,j
       * @param i Indice de la ligne où poser le pion
       * @param j Indice de la colonne où poser le pion
       * @returns Une liste des positions qui seront prise si le pion est posée en x,y
       */
      PionsTakenIfPlayAt(i: number, j: number): PlayImpact {
-          let otherPlayer: Turn = this.turn === 'Player1' ? 'Player2' : 'Player1';
-          let size: number = this.board.length;
+          let opponent: Turn = this.turn === 'Player1' ? 'Player2' : 'Player1';
           let pionsTaken: TileCoords[] = [];
           let pionsTemp: TileCoords[];
-          [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]].forEach(dir => {
-               let x: number = i;
-               let y: number = j;
+          [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]].forEach( ([horizontalMove,verticalMove]) => {
+               let x: number = i + horizontalMove;
+               let y: number = j + verticalMove;
                pionsTemp = [];
-               x += dir[0];
-               y += dir[1];
-               while (x < size && y < size && x >= 0 && y >= 0 && this.board[x][y] === otherPlayer) {
-                    console.log(this.board[x][y])
+               while (this.coordonatesInsideBoard(x, y) && this.board[x][y] === opponent) {
                     pionsTemp.push([x, y]);
-                    x += dir[0];
-                    y += dir[1];
+                    x += horizontalMove;
+                    y += verticalMove;
                }
-               if (x < size && y < size && x >= 0 && y >= 0 && this.board[x][y] === this.turn && pionsTemp.length > 0) {
+               if (this.coordonatesInsideBoard(x, y) && this.board[x][y] === this.turn) {
                     pionsTaken.push(...pionsTemp);
                }
           })
@@ -149,13 +155,11 @@ ${this.whereCanPlay()
       */
      whereCanPlay(): readonly TileCoords[] {
           let playableTiles: TileCoords[] = [];
-          this.board.forEach((line, i) => {
-               line.forEach((c, j) => {
+          this.board.forEach((line, i) => line.forEach((c, j) => {
                     if (c === 'Empty' && this.PionsTakenIfPlayAt(i, j).length > 0) {
                          playableTiles.push([i, j] as TileCoords);
                     }
-               })
-          })
+               }))
           return playableTiles as PlayImpact;
      }
 
@@ -168,15 +172,15 @@ ${this.whereCanPlay()
       * @returns Le nouvel état de jeu si le joueur courant joue en i,j, l'ancien état si il ne peut pas jouer en i,j
       */
      private tryPlay(i: number, j: number): GameState {
-          let nextTurn:Turn=this.turn;
-          let currentBoard:Board = this.board.map(elt=>elt.map(c=> c))as Board
+          let nextTurn:Turn = this.turn;
+          let currentBoard: Board = this.board.map( r => r.slice() ) as Board;
           let whereCanPlay:TileCoords[] = [...this.whereCanPlay()]
-          if(whereCanPlay.find(coord=> coord[0]===i&& coord[1]===j)){
+          if(whereCanPlay.find(coord => coord[0] === i && coord[1] === j)){
                currentBoard[i][j] = this.turn;
-               this.PionsTakenIfPlayAt(i,j).forEach(tile=>currentBoard[tile[0]][tile[1]]=this.turn);
-               nextTurn = this.turn==='Player1' ? 'Player2' : 'Player1';
+               this.PionsTakenIfPlayAt(i,j).forEach( ([x,y]) => currentBoard[x][y] = this.turn);
+               nextTurn = this.turn === 'Player1' ? 'Player2' : 'Player1';
           }
-          return { turn: nextTurn, board: currentBoard};
+          return {turn: nextTurn, board: currentBoard};
      }
 
      /**
