@@ -81,6 +81,7 @@ ${this.whereCanPlay()
      play(i: number, j: number): void {
           const { board: b1, turn: t1 } = this.gameStateSubj.value;
           const { board: b2, turn: t2 } = this.tryPlay(i, j);
+          
           if (b1 !== b2 || t1 !== t2) {
                this.gameStateSubj.next({
                     turn: t2,

@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, bufferTime } from 'rxjs';
+import { delay, filter } from 'rxjs/operators';
 import { ReversiGameEngineService } from './reversi-game-engine.service';
-import { delay, filter, skipWhile } from 'rxjs/operators';
 import { TileCoords } from './ReversiDefinitions';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
-export class IaService {
-  constructor(public RGS: ReversiGameEngineService) {
+export class IameilleurepriseService {
+
+  constructor(public RGS: ReversiGameEngineService) { 
     const subIA = RGS.gameStateObs
       .pipe(
         filter(game => game.turn === "Player2"),
@@ -18,8 +18,8 @@ export class IaService {
         //this.RGS.résuméDebug();
         const possiblePlays = RGS.whereCanPlay();
         if (possiblePlays.length > 0) {
-          const play = Math.floor(Math.random() * possiblePlays.length);
-          RGS.play(possiblePlays[play][0], possiblePlays[play][1]);
+          const bestPossiblePlay = possiblePlays.reduce( ([i,j], [x, y]) => this.RGS.PionsTakenIfPlayAt(x,y).length > this.RGS.PionsTakenIfPlayAt(i,j).length ? [x,y] : [i,j])
+          RGS.play(bestPossiblePlay[0], bestPossiblePlay[1]);
         } else {
           console.log("Aucun coup possible pour l'ia");
         }
@@ -27,7 +27,6 @@ export class IaService {
       });
 
     const subPlayed = RGS.gameStateObs.subscribe( _ => RGS.résuméDebug() );
-    console.log('IA instanciée');
+    console.log('IA meilleure prise instanciée');
   }
-
 }
